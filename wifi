@@ -19,7 +19,7 @@ function create_pass_hash(){
     echo $passw > tmp_pass
     echo -n $(sha256sum tmp_pass | awk '{print $1}') >> .wifi.key
     echo " ${wf_dev}" >> .wifi.key
-    rm -f tmp_pass
+    shred -zu tmp_pass
 }
 
 [ $# -ne 0 ] && [ $1 == "-h" ] && usage
@@ -33,9 +33,12 @@ y|Y|yes|Yes|YES)
     read wf_dev
     echo "Please enter the password:"
     read -s pass
+    touch tmp_pass && chmod 600 tmp_pass
     echo $pass > tmp_pass
     check1=$(sha256sum tmp_pass | awk '{print $1}')
     check2=$(grep ${wf_dev} .wifi.key | awk '{print $1}')
+    shred -zu tmp_pass
+    [ -z $check2 ] && echo "Check that SSID is Correct" && usage
     [ $check1 == $check2 ] || echo "Bad password" || usage
     ;;
 n|N|no|No|NO)
