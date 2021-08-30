@@ -1,0 +1,53 @@
+#!/bin/bash
+function usage {
+    echo "wifi is a simple wrapper around nmcli."
+    echo "Specifically for connecting to wifi."
+    echo "Usage: "
+    echo "       wifi"
+    echo "It will then prompt asking if this is"
+    echo "a pre-existing router or not."
+    echo "It will then prompt for the router name"
+    echo "(SSID) and then the password."
+    echo "The password is suppressed for security."
+    exit
+}
+function create_pass_hash(){
+    passw=$1
+    wf_dev=$2
+    echo "Please enter password:"
+    touch tmp_pass && chmod 600 tmp_pass
+    echo $passw > tmp_pass
+    echo -n $(sha256sum tmp_pass | awk '{print $1}') >> .wifi.key
+    echo " ${wf_dev}" >> .wifi.key
+    rm -f tmp_pass
+}
+
+[ $# -ne 0 ] && [ $1 == "-h" ] && usage
+
+echo 'Are we logging into an existing wifi router? [y/n]'
+read -s ans
+
+case $ans in 
+y|Y|yes|Yes|YES)
+    echo "What is tne name of the WiFi device:"
+    read wf_dev
+    echo "Please enter the password:"
+    read -s pass
+    echo $pass > tmp_pass
+    check1=$(sha256sum tmp_pass | awk '{print $1}')
+    check2=$(grep ${wf_dev} .wifi.key | awk '{print $1}')
+    [ $check1 == $check2 ] || echo "Bad password" || usage
+    ;;
+n|N|no|No|NO)
+    echo "What is tne name of the WiFi device:"
+    read wf_dev
+    echo "Please enter the password:"
+    read -s pass
+    create_pass_hash $pass $wf_dev
+    ;;
+*)
+    echo "Bad Input"
+    usage
+esac
+
+sudo nmcli dev wifi connect ${wf_dev} password ${pass}
