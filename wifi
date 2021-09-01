@@ -25,6 +25,8 @@ function create_pass_hash(){
 function check_pass_hash(){
     passw=$1
     wf_dev=$2
+    [[ $wf_dev ==[a-f0-9] ]] && wf_dev=$(echo "${wf_dev}x")
+    
     touch tmp_pass && chmod 600 tmp_pass
     echo $passw > tmp_pass
     check1=$(sha256sum tmp_pass | awk '{print $1}')
