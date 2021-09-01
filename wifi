@@ -22,28 +22,42 @@ function create_pass_hash(){
     echo " ${wf_dev}" >> .wifi.key
     shred -zu tmp_pass
 }
+function check_pass_hash(){
+    passw=$1
+    wf_dev=$2
+    touch tmp_pass && chmod 600 tmp_pass
+    echo $passw > tmp_pass
+    check1=$(sha256sum tmp_pass | awk '{print $1}')
+    check2=$(grep ${wf_dev} .wifi.key | awk '{print $1}')
+    shred -zu tmp_pass
+    [ -z $check2 ] && echo "Check that SSID is Correct" && usage
+    [ $check1 == $check2 ] || usage
+}
 
 [ $# -ne 0 ] && [ $1 == "-h" ] && usage
 
 echo 'Are we logging into an existing wifi router? [y/n]'
 read -s ans
 
-echo "What is tne name of the WiFi device:"
-read wf_dev
-echo "Please enter the password:"
-read -s pass
+[ -z $ans ] && usage
 
 case $ans in 
 y|Y|yes|Yes|YES)
-    touch tmp_pass && chmod 600 tmp_pass
-    echo $pass > tmp_pass
-    check1=$(sha256sum tmp_pass | awk '{print $1}')
-    check2=$(grep ${wf_dev} .wifi.key | awk '{print $1}')
-    shred -zu tmp_pass
-    [ -z $check2 ] && echo "Check that SSID is Correct" && usage
-    [ $check1 == $check2 ] || echo "Bad password" || usage
+    echo "What is the name of the WiFi device:"
+    read wf_dev
+    [ -z $wf_dev ] && echo "No SSID provided" && exit
+    echo "Please enter the password:"
+    read -s pass
+    [ -z $pass ] && echo "No password entered" && exit
+    check_pass_hash $pass $wf_dev
     ;;
 n|N|no|No|NO)
+    echo "What is the name of the WiFi device:"
+    read wf_dev
+    [ -z $wf_dev ] && echo "No SSID provided" && exit
+    echo "Please enter the password:"
+    read -s pass
+    [ -z $pass ] && echo "No password entered" && exit
     create_pass_hash $pass $wf_dev
     ;;
 *)
