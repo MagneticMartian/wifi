@@ -1,20 +1,21 @@
 #!/bin/bash
 function usage {
-    echo "wifi is a simple wrapper around nmcli."
-    echo "Specifically for connecting to wifi."
-    echo "Usage: "
-    echo "       wifi"
-    echo "It will then prompt asking if this is"
-    echo "a pre-existing router or not."
-    echo "It will then prompt for the router name"
-    echo "(SSID) and then the password."
-    echo "The password is suppressed for security."
-    exit
+cat >> /dev/stdout << EOF
+wifi is a simple wrapper around nmcli.
+Specifically for connecting to wifi.
+Usage: 
+       wifi
+It will then prompt asking if this is
+a pre-existing router or not.
+It will then prompt for the router name
+(SSID) and then the password.
+The password is suppressed for security.
+EOF
+exit
 }
 function create_pass_hash(){
     passw=$1
     wf_dev=$2
-    echo "Please enter password:"
     touch tmp_pass && chmod 600 tmp_pass
     echo $passw > tmp_pass
     echo -n $(sha256sum tmp_pass | awk '{print $1}') >> .wifi.key
@@ -27,12 +28,13 @@ function create_pass_hash(){
 echo 'Are we logging into an existing wifi router? [y/n]'
 read -s ans
 
+echo "What is tne name of the WiFi device:"
+read wf_dev
+echo "Please enter the password:"
+read -s pass
+
 case $ans in 
 y|Y|yes|Yes|YES)
-    echo "What is tne name of the WiFi device:"
-    read wf_dev
-    echo "Please enter the password:"
-    read -s pass
     touch tmp_pass && chmod 600 tmp_pass
     echo $pass > tmp_pass
     check1=$(sha256sum tmp_pass | awk '{print $1}')
@@ -42,10 +44,6 @@ y|Y|yes|Yes|YES)
     [ $check1 == $check2 ] || echo "Bad password" || usage
     ;;
 n|N|no|No|NO)
-    echo "What is tne name of the WiFi device:"
-    read wf_dev
-    echo "Please enter the password:"
-    read -s pass
     create_pass_hash $pass $wf_dev
     ;;
 *)
