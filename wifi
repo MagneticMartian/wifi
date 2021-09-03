@@ -45,8 +45,11 @@ read -s ans
 
 case $ans in 
 y|Y|yes|Yes|YES)
-    echo "What is the name of the WiFi device:"
-    read wf_dev
+    prompt="What is the name of the WiFi device:"
+    n=$(wc -l .wifi.key | awk '{print $1}')
+    wf_dev=$(cat .wifi.key | 
+        awk '{print $2}' |
+        dmenu -l $n -h 24 -fn 'Monospace Bold:pixelsize=18' -p "$prompt")
     [ -z $wf_dev ] && echo "No SSID provided" && exit
     echo "Please enter the password:"
     read -s pass
