@@ -13,24 +13,30 @@ The password is suppressed for security.
 EOF
 exit
 }
+key_dir=$HOME/.cache/wifi
+key_list=${key_dir}/.wifi.key
+
+[ ! -d $key_dir ] && mkdir -p $key_dir
+[ -f .wifi.key ] && mv .wifi.key $key_dir
+
 function create_pass_hash(){
     passw=$1
     wf_dev=$2
     touch tmp_pass && chmod 600 tmp_pass
     echo $passw > tmp_pass
-    echo -n $(sha256sum tmp_pass | awk '{print $1}') >> .wifi.key
-    echo " ${wf_dev}" >> .wifi.key
+    echo -n $(sha256sum tmp_pass | awk '{print $1}') >> $key_list
+    echo " ${wf_dev}" >> $key_list
     shred -zu tmp_pass
 }
 function check_pass_hash(){
     passw=$1
     wf_dev=$2
-    [[ $wf_dev ==[a-f0-9] ]] && wf_dev=$(echo "${wf_dev}x")
-    
+    [[ $wf_dev == [a-f0-9] ]] && wf_dev=$(echo "${wf_dev}x")
+
     touch tmp_pass && chmod 600 tmp_pass
     echo $passw > tmp_pass
     check1=$(sha256sum tmp_pass | awk '{print $1}')
-    check2=$(grep ${wf_dev} .wifi.key | awk '{print $1}')
+    check2=$(grep ${wf_dev} $key_list | awk '{print $1}')
     shred -zu tmp_pass
     [ -z $check2 ] && echo "Check that SSID is Correct" && usage
     [ $check1 == $check2 ] || usage
@@ -46,9 +52,9 @@ read -s ans
 case $ans in 
 y|Y|yes|Yes|YES)
     prompt="What is the name of the WiFi device:"
-    n=$(wc -l .wifi.key | awk '{print $1}')
-    wf_dev=$(cat .wifi.key | 
-        awk '{print $2}' |
+    n=$(wc -l $key_list | awk '{print $1}')
+    wf_dev=$(cat $key_list | 
+        awk '{print $2}' | 
         dmenu -l $n -h 24 -fn 'Monospace Bold:pixelsize=18' -p "$prompt")
     [ -z $wf_dev ] && echo "No SSID provided" && exit
     echo "Please enter the password:"
