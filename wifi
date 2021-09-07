@@ -64,7 +64,7 @@ y|Y|yes|Yes|YES)
     ;;
 n|N|no|No|NO)
     prompt="What is the name of the WiFi device:"
-    n=$(nmcli -t dev wifi | wc -l)
+    n=$(nmcli -t dev wifi | wc -l | awk '{print $1}')
     wf_dev=$(nmcli -t dev wifi |
         cut -d : -f 8 |
         dmenu -l $n -h 24 -fn'Monospace Bold:pixelsize=18' -p "$prompt")
