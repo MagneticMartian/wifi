@@ -65,7 +65,7 @@ n|N|no|No|NO)
     n=$(nmcli -t dev wifi | wc -l | awk '{print $1}')
     wf_dev=$(nmcli -t dev wifi |
         cut -d : -f 8 |
-        dmenu -l $n -h 24 -fn'Monospace Bold:pixelsize=18' -p "$prompt")
+        dmenu -l $n -h 24 -fn 'Monospace Bold:pixelsize=18' -p "$prompt")
     [ -z $wf_dev ] && echo "No SSID provided" && exit
     echo "Please enter the password:"
     read -s pass
